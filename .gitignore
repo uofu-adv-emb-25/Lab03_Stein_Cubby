@@ -1,0 +1,9 @@
+Testing
+build
+log
+
+*.log.*
+*-asciinema
+*.pid
+*-profile
+.vscode/**
