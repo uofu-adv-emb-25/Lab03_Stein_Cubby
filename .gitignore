@@ -7,3 +7,4 @@ log
 *.pid
 *-profile
 .vscode/**
+.DS_Store
