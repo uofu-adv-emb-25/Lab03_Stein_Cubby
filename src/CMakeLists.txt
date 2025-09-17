@@ -48,8 +48,8 @@ pico_set_program_name(threads "threads")
 pico_set_program_version(threads "0.1")
 
 # Enable output over USB (or UART)
-pico_enable_stdio_uart(threads 0)
-pico_enable_stdio_usb(threads 1)
+pico_enable_stdio_uart(threads 1)
+pico_enable_stdio_usb(threads 0)
 
 
 # Link libraries to the threads target
