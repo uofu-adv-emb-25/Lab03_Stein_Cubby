@@ -14,7 +14,7 @@
 
 SemaphoreHandle_t semaphore;
 
-int counter;
+int counter;    // Shared state
 int on;
 
 void side_thread(void *params)
@@ -43,7 +43,7 @@ int main(void)
     on = false;
     counter = 0;
     TaskHandle_t main, side;
-    semaphore = xSemaphoreCreateCounting(1, 1);
+    semaphore = xSemaphoreCreateCounting(1, 1);     // Create semaphore, Max Tokens = 1, Start Tokens = 1
     xTaskCreate(main_thread, "MainThread",
                 MAIN_TASK_STACK_SIZE, NULL, MAIN_TASK_PRIORITY, &main);
     xTaskCreate(side_thread, "SideThread",
