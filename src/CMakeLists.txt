@@ -36,7 +36,17 @@ find_program(PICOTOOL picotool)
 
 add_custom_target(flash ${PICOTOOL} load -f $<TARGET_FILE:hello_freertos> DEPENDS hello_freertos)
 
-add_custom_target(openocd_flash ${OPENOCD} -s ${OPENOCD_PATH} -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c 'adapter speed 5000; program "$<TARGET_FILE:hello_freertos>" verify reset exit' DEPENDS hello_freertos)
+add_custom_target(openocd_flash
+  COMMAND ${OPENOCD} -s ${OPENOCD_PATH}
+          -f interface/cmsis-dap.cfg
+          -f target/rp2040.cfg
+          -c "adapter speed 5000"
+          -c "init"
+          -c "reset halt"
+          -c "program {$<TARGET_FILE:hello_freertos>} verify reset exit"
+  DEPENDS threads
+  USES_TERMINAL
+)
 
 # ---------------------------------------
 # Target for threads.c
@@ -72,4 +82,14 @@ pico_add_extra_outputs(threads)
 # Add flash target for threads
 add_custom_target(flash_threads ${PICOTOOL} load -f $<TARGET_FILE:threads> DEPENDS threads)
 
-add_custom_target(openocd_flash_threads ${OPENOCD} -s ${OPENOCD_PATH} -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c 'adapter speed 5000; program "$<TARGET_FILE:threads>" verify reset exit' DEPENDS threads)
+add_custom_target(openocd_flash_threads
+  COMMAND ${OPENOCD} -s ${OPENOCD_PATH}
+          -f interface/cmsis-dap.cfg
+          -f target/rp2040.cfg
+          -c "adapter speed 5000"
+          -c "init"
+          -c "reset halt"
+          -c "program {$<TARGET_FILE:threads>} verify reset exit"
+  DEPENDS threads
+  USES_TERMINAL
+)
