@@ -19,3 +19,5 @@ typedef struct {
     TaskHandle_t thB;
 } DeadlockPair;
  */
+
+ BaseType_t do_iteration(const CriticalCtx *ctx);

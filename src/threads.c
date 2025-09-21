@@ -18,15 +18,6 @@ SemaphoreHandle_t semaphore;
 int counter;    // Shared state
 int on;
 
-int do_iteration(const CriticalCtx *ctx) {
-    if (xSemaphoreTake(ctx->lock, ctx->wait) != pdTRUE) {
-        return pdFALSE;
-    }
-    (*ctx->counter)++;
-    xSemaphoreGive(ctx->lock);
-    return pdTRUE;
-}
-
 void side_thread(void *params)
 {
     CriticalCtx ctx = {        

@@ -51,7 +51,7 @@ add_custom_target(openocd_flash
 # ---------------------------------------
 # Target for threads.c
 add_executable(threads
-    threads.c
+    threads.c threads_helpers.c
 )
 
 pico_set_program_name(threads "threads")

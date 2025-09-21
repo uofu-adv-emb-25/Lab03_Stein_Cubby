@@ -9,10 +9,16 @@ void setUp(void) {}
 
 void tearDown(void) {}
 
-void test_thread(void)  // Activity 2
+void test_incr_unlocked(void)  // ---- Activity 2 ----
 {
-    int x = 1;
-    TEST_ASSERT_TRUE_MESSAGE(x == 1,"Variable assignment failed.");
+    SemaphoreHandle_t s = xSemaphoreCreateCounting(1, 1);
+    volatile int counter = 0;
+    CriticalCtx ctx = { .lock = s, .counter = &counter, .wait = 0};
+    
+    TEST_ASSERT_EQUAL(pdTRUE, do_iteration(&ctx));
+    TEST_ASSERT_EQUAL(1, counter);
+
+    vSemaphoreDelete(s);
 }
 
 void test_multiplication(void)
@@ -27,10 +33,12 @@ int main (void)
 {
     stdio_init_all();
     sleep_ms(5000); // Give time for TTY to attach.
-    printf("Start tests\n");
-    UNITY_BEGIN();
-    RUN_TEST(test_thread);
-    RUN_TEST(test_multiplication);
-    sleep_ms(5000);
-    return UNITY_END();
+    while(1){
+        printf("Start tests\n");
+        UNITY_BEGIN();
+        RUN_TEST(test_incr_unlocked);
+        RUN_TEST(test_multiplication);
+        sleep_ms(5000);
+        UNITY_END();
+    }
 }
