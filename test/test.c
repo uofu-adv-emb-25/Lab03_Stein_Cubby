@@ -3,12 +3,13 @@
 #include <stdint.h>
 #include <unity.h>
 #include "unity_config.h"
+#include "threads.h"
 
 void setUp(void) {}
 
 void tearDown(void) {}
 
-void test_variable_assignment()
+void test_thread(void)  // Activity 2
 {
     int x = 1;
     TEST_ASSERT_TRUE_MESSAGE(x == 1,"Variable assignment failed.");
@@ -28,7 +29,7 @@ int main (void)
     sleep_ms(5000); // Give time for TTY to attach.
     printf("Start tests\n");
     UNITY_BEGIN();
-    RUN_TEST(test_variable_assignment);
+    RUN_TEST(test_thread);
     RUN_TEST(test_multiplication);
     sleep_ms(5000);
     return UNITY_END();
