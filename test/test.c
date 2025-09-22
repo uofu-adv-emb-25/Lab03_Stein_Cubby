@@ -9,7 +9,9 @@ void setUp(void) {}
 
 void tearDown(void) {}
 
-void test_incr_unlocked(void)  // ---- Activity 2 ----
+// ---- Activity 2 ----
+
+void test_incr_unlocked(void)
 {
     SemaphoreHandle_t s = xSemaphoreCreateCounting(1, 1);
     volatile int counter = 0;
@@ -32,6 +34,37 @@ void test_incr_locked(void)
     TEST_ASSERT_EQUAL(0, counter);
     xSemaphoreGive(ctx.lock);
     vSemaphoreDelete(s);
+}
+
+// ---- Activity 4 ----
+
+void test_deadlock_pair(void) {
+    DeadlockPair p = {0};
+
+    p.a = xSemaphoreCreateCounting(1, 1);
+    p.b = xSemaphoreCreateCounting(1, 1);
+    p.wait = portMAX_DELAY;
+    TEST_ASSERT_NOT_NULL(p.a);
+    TEST_ASSERT_NOT_NULL(p.b);
+
+    start_deadlock_pair(&p, tskIDLE_PRIORITY + 1);
+
+    // Wait to reach deadlock
+    vTaskDelay(pdMS_TO_TICKS(50));
+
+    // Both should be blocked
+    eTaskState sa = eTaskGetState(p.thA);
+    eTaskState sb = eTaskGetState(p.thB);
+    TEST_ASSERT_TRUE(sa == eBlocked || sa == eSuspended);
+    TEST_ASSERT_TRUE(sb == eBlocked || sb == eSuspended);
+
+    // Cleanup
+    vTaskSuspend(p.thA);
+    vTaskSuspend(p.thB);
+    vTaskDelete(p.thA);
+    vTaskDelete(p.thB);
+    vSemaphoreDelete(p.a);
+    vSemaphoreDelete(p.b);
 }
 
 int main (void)
