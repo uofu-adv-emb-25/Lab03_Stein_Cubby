@@ -21,12 +21,17 @@ void test_incr_unlocked(void)  // ---- Activity 2 ----
     vSemaphoreDelete(s);
 }
 
-void test_multiplication(void)
+void test_incr_locked(void)
 {
-    int x = 30;
-    int y = 6;
-    int z = x / y;
-    TEST_ASSERT_TRUE_MESSAGE(z == 5, "Multiplication of two integers returned incorrect value.");
+    SemaphoreHandle_t s = xSemaphoreCreateCounting(1, 1);
+    volatile int counter = 0;
+    CriticalCtx ctx = { .lock = s, .counter = &counter, .wait = portMAX_DELAY};
+
+    TEST_ASSERT_EQUAL(pdTRUE, xSemaphoreTake(ctx.lock, ctx.wait));
+    TEST_ASSERT_EQUAL(pdFALSE, do_iteration(&ctx));
+    TEST_ASSERT_EQUAL(0, counter);
+    xSemaphoreGive(ctx.lock);
+    vSemaphoreDelete(s);
 }
 
 int main (void)
@@ -37,7 +42,7 @@ int main (void)
         printf("Start tests\n");
         UNITY_BEGIN();
         RUN_TEST(test_incr_unlocked);
-        RUN_TEST(test_multiplication);
+        RUN_TEST(test_incr_locked);
         sleep_ms(5000);
         UNITY_END();
     }
