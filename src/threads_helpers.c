@@ -35,7 +35,7 @@ static void taskB(void *pv) {
     vTaskDelete(NULL);
 }
 
-static void start_deadlock_pair(DeadlockPair *p, UBaseType_t prio) {
+void start_deadlock_pair(DeadlockPair *p, UBaseType_t prio) {
     // p->a = xSemaphoreCreateCounting(1, 1);   // Create these in test instead
     // p->b = xSemaphoreCreateCounting(1, 1);
 

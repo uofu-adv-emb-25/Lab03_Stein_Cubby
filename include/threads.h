@@ -19,6 +19,4 @@ typedef struct {
 } DeadlockPair;
 
  BaseType_t do_iteration(const CriticalCtx *ctx);
- static void taskA(void *pv);
- static void taskB(void *pv);
- static void start_deadlock_pair(DeadlockPair *p, UBaseType_t prio);
+ void start_deadlock_pair(DeadlockPair *p, UBaseType_t prio);

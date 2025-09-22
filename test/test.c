@@ -27,7 +27,7 @@ void test_incr_locked(void)
 {
     SemaphoreHandle_t s = xSemaphoreCreateCounting(1, 1);
     volatile int counter = 0;
-    CriticalCtx ctx = { .lock = s, .counter = &counter, .wait = portMAX_DELAY};
+    CriticalCtx ctx = { .lock = s, .counter = &counter, .wait = 0};
 
     TEST_ASSERT_EQUAL(pdTRUE, xSemaphoreTake(ctx.lock, ctx.wait));
     TEST_ASSERT_EQUAL(pdFALSE, do_iteration(&ctx));
@@ -67,16 +67,39 @@ void test_deadlock_pair(void) {
     vSemaphoreDelete(p.b);
 }
 
+static void rtos_test_task(void *pvParameters) {
+
+    for(;;){
+        UNITY_BEGIN();
+
+        printf("\n==== START UNITY TESTS ====");
+
+        RUN_TEST(test_incr_unlocked);
+        RUN_TEST(test_incr_locked);
+        RUN_TEST(test_deadlock_pair);
+
+        printf("\n==== END UNITY TESTS ====");
+
+        UNITY_END();
+        vTaskDelay(pdMS_TO_TICKS(2000));
+    }
+    vTaskSuspend(NULL);
+}
+
 int main (void)
 {
     stdio_init_all();
     sleep_ms(5000); // Give time for TTY to attach.
-    while(1){
-        printf("Start tests\n");
-        UNITY_BEGIN();
-        RUN_TEST(test_incr_unlocked);
-        RUN_TEST(test_incr_locked);
-        sleep_ms(5000);
-        UNITY_END();
-    }
+
+    xTaskCreate(
+        rtos_test_task,
+        "tester",               
+        configMINIMAL_STACK_SIZE + 1024,
+        NULL,                    
+        tskIDLE_PRIORITY + 1,    
+        NULL                     
+    );
+
+    // Start scheduler so vTaskDelay and tasks actually run
+    vTaskStartScheduler();
 }
