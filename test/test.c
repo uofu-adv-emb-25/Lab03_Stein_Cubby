@@ -89,9 +89,6 @@ void test_orphaned(void)
     TEST_ASSERT_EQUAL_INT(3, counter);
     TEST_ASSERT_EQUAL_INT(pdFALSE, result);
     TEST_ASSERT_EQUAL_INT(0, uxSemaphoreGetCount(semaphore));
-
-    xSemaphoreGive(semaphore);
-    vSemaphoreDelete(semaphore);
 }
 
 
