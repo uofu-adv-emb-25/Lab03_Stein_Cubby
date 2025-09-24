@@ -19,9 +19,7 @@ typedef struct {
 } DeadlockPair;
 
  BaseType_t do_iteration(const CriticalCtx *ctx);
- static void taskA(void *pv);
- static void taskB(void *pv);
- static void start_deadlock_pair(DeadlockPair *p, UBaseType_t prio);
+ void start_deadlock_pair(DeadlockPair *p, UBaseType_t prio);
  int orphaned_lock(SemaphoreHandle_t semaphore, TickType_t timeout, int *counter);
  int unorphaned_lock(SemaphoreHandle_t semaphore, TickType_t timeout, int *counter);
  
