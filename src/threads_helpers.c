@@ -1,4 +1,5 @@
 #include "threads.h"
+#include <stdio.h>
 
 BaseType_t do_iteration(const CriticalCtx *ctx) {
     if (xSemaphoreTake(ctx->lock, ctx->wait) != pdTRUE) {
@@ -26,18 +27,16 @@ int orphaned_lock(SemaphoreHandle_t semaphore, TickType_t timeout, int *counter)
 }
 
 // Orphaned Lock (fixed)
-int orphaned_unlocked(SemaphoreHandle_t semaphore, TickType_t timeout, int *counter)
+int unorphaned_lock(SemaphoreHandle_t semaphore, TickType_t timeout, int *counter)
 {
     if (xSemaphoreTake(semaphore, timeout) == pdFALSE)
         return pdFALSE;
-
-    (*counter)++;
-    if (*counter % 2) {
-        xSemaphoreGive(semaphore);
-        return 0;
+    {
+        (*counter)++;
+        if (!(*counter % 2)) {
+            printf("Count %d\n", *counter);
+        }
     }
-
-    printf("Count %d\n", *counter);
     xSemaphoreGive(semaphore);
     return pdTRUE;
 }
@@ -86,7 +85,7 @@ static void unlockedOrphanTask(void *pv)
     struct{SemaphoreHandle_t s; TickType_t timeout; int *counter;} *p = pv;
     while(1)
     {
-        orphaned_unlocked(p->s, p->timeout, p->counter);
+        unorphaned_lock(p->s, p->timeout, p->counter);
         vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
@@ -101,7 +100,7 @@ static void start_deadlock_pair(DeadlockPair *p, UBaseType_t prio) {
 }
 
 // Start the broken/deadlocked orphan thread
-static void startLockedOrphanTask(SemaphoreHandle_t s, TickType_t timeout, int *counter, UBaseType_t prio, TaksHandle_t *out)
+static void startLockedOrphanTask(SemaphoreHandle_t s, TickType_t timeout, int *counter, UBaseType_t prio, TaskHandle_t *out)
 {
     static struct {
          SemaphoreHandle_t s;
@@ -111,12 +110,12 @@ static void startLockedOrphanTask(SemaphoreHandle_t s, TickType_t timeout, int *
     args.s = s;
     args.t = timeout;
     args.c = counter;
-    
+
     xTaskCreate(lockedOrphanTask, "deadlocked_orphan", configMINIMAL_STACK_SIZE, &args, prio, out);
 }
 
 // Star the fixed/unlocked orphan thread
-static void startUnlockedOrphanTask(SemaphoreHandle_t s, TickType_t timeout, int *counter, UBaseType_t prio, TaksHandle_t *out)
+static void startUnlockedOrphanTask(SemaphoreHandle_t s, TickType_t timeout, int *counter, UBaseType_t prio, TaskHandle_t *out)
 {
     static struct {
          SemaphoreHandle_t s;
