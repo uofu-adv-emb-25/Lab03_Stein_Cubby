@@ -90,29 +90,6 @@ static void unlockedOrphanTask(void *pv)
     }
 }
 
-// Task to test the broken orphned_lock function with small delay
-static void lockedOrphanTask(void *pv)
-{
-    struct{SemaphoreHandle_t s; TickType_t timeout; int *counter;} *p = pv;
-    while(1)
-    {
-        orphaned_lock(p->s, p->timeout, p->counter);
-        vTaskDelay(pdMS_TO_TICKS(10));
-    }
-}
-
-
-// Task to test the fixed orphned_lock function with small delay
-static void unlockedOrphanTask(void *pv)
-{
-    struct{SemaphoreHandle_t s; TickType_t timeout; int *counter;} *p = pv;
-    while(1)
-    {
-        unorphaned_lock(p->s, p->timeout, p->counter);
-        vTaskDelay(pdMS_TO_TICKS(10));
-    }
-}
-
 void start_deadlock_pair(DeadlockPair *p, UBaseType_t prio) {
     // p->a = xSemaphoreCreateCounting(1, 1);   // Create these in test instead
     // p->b = xSemaphoreCreateCounting(1, 1);
