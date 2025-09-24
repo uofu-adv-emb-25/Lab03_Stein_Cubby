@@ -69,6 +69,30 @@ void test_deadlock_pair(void) {
 
 // ---- Activity 5 ----
 
+void test_orphaned(void)
+{
+    int counter = 1;
+    SemaphoreHandle_t semaphore = xSemaphoreCreateCounting(1, 1);
+    TEST_ASSERT_NOT_NULL(semaphore);
+
+    int result = orphaned_lock(semaphore, pdMS_TO_TICKS(500), &counter);
+    TEST_ASSERT_EQUAL_INT(2, counter);
+    TEST_ASSERT_EQUAL_INT(pdTRUE, result);
+    TEST_ASSERT_EQUAL_INT(1, uxSemaphoreGetCount(semaphore));
+
+    result = orphaned_lock(semaphore, pdMS_TO_TICKS(500), &counter);
+    TEST_ASSERT_EQUAL_INT(3, counter);
+    TEST_ASSERT_EQUAL_INT(0, result);
+    TEST_ASSERT_EQUAL_INT(0, uxSemaphoreGetCount(semaphore));
+
+    result = orphaned_lock(semaphore, pdMS_TO_TICKS(500), &counter);
+    TEST_ASSERT_EQUAL_INT(3, counter);
+    TEST_ASSERT_EQUAL_INT(pdFALSE, result);
+    TEST_ASSERT_EQUAL_INT(0, uxSemaphoreGetCount(semaphore));
+
+    xSemaphoreGive(semaphore);
+    vSemaphoreDelete(semaphore);
+}
 
 
 
