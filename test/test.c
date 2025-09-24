@@ -67,6 +67,14 @@ void test_deadlock_pair(void) {
     vSemaphoreDelete(p.b);
 }
 
+// ---- Activity 5 ----
+
+
+
+
+
+
+
 int main (void)
 {
     stdio_init_all();
@@ -76,6 +84,7 @@ int main (void)
         UNITY_BEGIN();
         RUN_TEST(test_incr_unlocked);
         RUN_TEST(test_incr_locked);
+        RUN_TEST(test_orphaned_lock)
         sleep_ms(5000);
         UNITY_END();
     }

@@ -9,8 +9,41 @@ BaseType_t do_iteration(const CriticalCtx *ctx) {
     return pdTRUE;
 }
 
-// Take A, wait, then try B
+// Orphaned Lock (broken)
+int orphaned_lock(SemaphoreHandle_t semaphore, TickType_t timeout, int *counter)
+{
+    if (xSemaphoreTake(semaphore, timeout) == pdFALSE)
+        return pdFALSE;
+    {
+        (*counter)++;
+        if (*counter % 2) {
+            return 0;
+        }
+        printf("Count %d\n", *counter);
+    }
+    xSemaphoreGive(semaphore);
+    return pdTRUE;
+}
 
+// Orphaned Lock (fixed)
+int orphaned_unlocked(SemaphoreHandle_t semaphore, TickType_t timeout, int *counter)
+{
+    if (xSemaphoreTake(semaphore, timeout) == pdFALSE)
+        return pdFALSE;
+
+    (*counter)++;
+    if (*counter % 2) {
+        xSemaphoreGive(semaphore);
+        return 0;
+    }
+
+    printf("Count %d\n", *counter);
+    xSemaphoreGive(semaphore);
+    return pdTRUE;
+}
+
+
+// Take A, wait, then try B
 static void taskA(void *pv) {
     DeadlockPair *p = (DeadlockPair*)pv;
 
@@ -35,6 +68,29 @@ static void taskB(void *pv) {
     vTaskDelete(NULL);
 }
 
+// Task to test the broken orphned_lock function with small delay
+static void lockedOrphanTask(void *pv)
+{
+    struct{SemaphoreHandle_t s; TickType_t timeout; int *counter;} *p = pv;
+    while(1)
+    {
+        orphaned_lock(p->s, p->timeout, p->counter);
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+}
+
+
+// Task to test the fixed orphned_lock function with small delay
+static void unlockedOrphanTask(void *pv)
+{
+    struct{SemaphoreHandle_t s; TickType_t timeout; int *counter;} *p = pv;
+    while(1)
+    {
+        orphaned_unlocked(p->s, p->timeout, p->counter);
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+}
+
 static void start_deadlock_pair(DeadlockPair *p, UBaseType_t prio) {
     // p->a = xSemaphoreCreateCounting(1, 1);   // Create these in test instead
     // p->b = xSemaphoreCreateCounting(1, 1);
@@ -43,3 +99,34 @@ static void start_deadlock_pair(DeadlockPair *p, UBaseType_t prio) {
     xTaskCreate(taskA, "A", configMINIMAL_STACK_SIZE, p, prio, &p->thA);
     xTaskCreate(taskB, "B", configMINIMAL_STACK_SIZE, p, prio, &p->thB);
 }
+
+// Start the broken/deadlocked orphan thread
+static void startLockedOrphanTask(SemaphoreHandle_t s, TickType_t timeout, int *counter, UBaseType_t prio, TaksHandle_t *out)
+{
+    static struct {
+         SemaphoreHandle_t s;
+         TickType_t t; int *c;
+         } args;
+
+    args.s = s;
+    args.t = timeout;
+    args.c = counter;
+    
+    xTaskCreate(lockedOrphanTask, "deadlocked_orphan", configMINIMAL_STACK_SIZE, &args, prio, out);
+}
+
+// Star the fixed/unlocked orphan thread
+static void startUnlockedOrphanTask(SemaphoreHandle_t s, TickType_t timeout, int *counter, UBaseType_t prio, TaksHandle_t *out)
+{
+    static struct {
+         SemaphoreHandle_t s;
+         TickType_t t; int *c;
+         } args;
+
+    args.s = s;
+    args.t = timeout;
+    args.c = counter;
+
+    xTaskCreate(unlockedOrphanTask, "unlocked_orphan", configMINIMAL_STACK_SIZE, &args, prio, out);
+}
+
