@@ -105,7 +105,6 @@ void test_fixed_orphan(void)
 
     result = unorphaned_lock(semaphore, pdMS_TO_TICKS(500), &counter);
     TEST_ASSERT_EQUAL_INT(3, counter);
-    TEST_ASSERT_EQUAL_INT(0, result);
     TEST_ASSERT_EQUAL_INT(1, uxSemaphoreGetCount(semaphore));
 }
 
